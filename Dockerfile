@@ -27,7 +27,8 @@ ENV NO_AT_BRIDGE=1
 # Install OpenCV 4.11.0
 RUN apt-get update && apt-get install -y \
     git \
-    libgtk2.0-dev \
+    libgtk-4-dev \
+    libvtk9-dev \
     libcanberra-gtk-module \
     pkg-config
 RUN git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv.git opencv-4.11.0; \
@@ -35,6 +36,7 @@ RUN git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv.git ope
     cmake \
         -G Ninja \
         -D WITH_CUDA=ON \
+        -D WITH_VTK=ON \
         -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib-4.11.0/modules \
         -S /opencv-4.11.0 \
         -B /opencv-4.11.0/build; \
