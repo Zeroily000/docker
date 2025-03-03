@@ -27,7 +27,7 @@ ENV NO_AT_BRIDGE=1
 # Install OpenCV 4.11.0
 RUN apt-get update && apt-get install -y \
     git \
-    libgtk-4-dev \
+    libgtk2.0-dev \
     libvtk9-dev \
     libcanberra-gtk-module \
     pkg-config
