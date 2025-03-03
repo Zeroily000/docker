@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     make \
+    ninja-build \
+    cmake \
     gdb \
     lldb
 
@@ -22,30 +24,28 @@ RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV NO_AT_BRIDGE=1
 
-# Upgrade make to 4.4
-RUN apt-get update && apt-get install -y \
-    wget
-RUN wget https://ftp.wayne.edu/gnu/make/make-4.4.tar.gz; \
-    tar -xvzf make-4.4.tar.gz make-4.4; \
-    cd make-4.4; \
-    ./configure; \
-    make --no-print-directory -j`nproc --ignore=2`; \
-    make --no-print-directory install
-RUN rm -rf make-4.4/
-
-# Upgrade GCC to 14.2
+# Install OpenCV 4.11.0
 RUN apt-get update && apt-get install -y \
     git \
-    libgmp-dev \
-    libmpfr-dev \
-    libmpc-dev \
-    flex
-RUN git clone --depth 1 --branch releases/gcc-14.2.0 git://gcc.gnu.org/git/gcc.git gcc-14.2; \
-    cd gcc-14.2; mkdir objdir; cd objdir; \
-    ../configure --disable-multilib; \
-    make --no-print-directory -j`nproc --ignore=2`; \
-    make --no-print-directory install
-RUN rm -rf gcc-14.2/
+    libgtk2.0-dev \
+    libcanberra-gtk-module \
+    pkg-config
+RUN git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv.git opencv-4.11.0; \
+    git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv_contrib.git opencv_contrib-4.11.0; \
+    cmake \
+        -G Ninja \
+        -D WITH_CUDA=ON \
+        -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib-4.11.0/modules \
+        -S /opencv-4.11.0 \
+        -B /opencv-4.11.0/build; \
+    cmake \
+        --build /opencv-4.11.0/build \
+        -- -j`nproc --ignore=2`; \
+    cmake \
+        --build /opencv-4.11.0/build \
+        --target install
+RUN rm -rf /opencv-4.11.0; \
+    rm -rf opencv_contrib-4.11.0
 
 # Install Bazel
 RUN apt-get update && apt-get install -y \
