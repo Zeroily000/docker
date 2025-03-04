@@ -49,6 +49,16 @@ RUN git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv.git ope
 RUN rm -rf /opencv-4.11.0; \
     rm -rf opencv_contrib-4.11.0
 
+# Upgrade CMake to 3.30.5
+RUN apt-get update && apt-get install -y \
+    git
+RUN git clone --depth 1 --branch v3.30.5 https://github.com/Kitware/CMake.git cmake-3.30.5; \
+    cd cmake-3.30.5; \
+    ./bootstrap; \
+    make -j`nproc --ignore=2`;\
+    make install
+RUN rm -rf /cmake-3.30.5
+
 # Install Bazel
 RUN apt-get update && apt-get install -y \
     wget
