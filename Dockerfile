@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.6.2-cudnn-devel-ubuntu22.04
+FROM nvidia/cuda:12.8.0-cudnn-devel-ubuntu24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y \
     g++ \
     make \
     ninja-build \
-    cmake \
     gdb \
     lldb
 
@@ -23,6 +22,39 @@ RUN apt-get update && apt-get install -y \
 RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV NO_AT_BRIDGE=1
+
+# Upgrade gcc/g++ to 14.2.0
+RUN apt-get update && apt-get install -y \
+    git \
+    flex \
+    binutils \
+    gzip \
+    bzip2 \
+    tar \
+    perl \
+    libgmp-dev \
+    libmpfr-dev \
+    libmpc-dev \
+    libisl-dev \
+    libzstd-dev \
+    gettext
+RUN git clone --depth 1 --branch releases/gcc-14.2.0 git://gcc.gnu.org/git/gcc.git gcc-14.2.0; \
+    cd gcc-14.2.0; mkdir objdir; cd objdir; \
+    ../configure --disable-multilib; \
+    make --no-print-directory -j`nproc --ignore=2`; \
+    make --no-print-directory install
+RUN rm -rf /gcc-14.2.0
+
+# Install CMake 3.30.5
+RUN apt-get update && apt-get install -y \
+    git \
+    libssl-dev
+RUN git clone --depth 1 --branch v3.30.5 https://github.com/Kitware/CMake.git cmake-3.30.5; \
+    cd cmake-3.30.5; \
+    ./bootstrap; \
+    make -j`nproc --ignore=2`;\
+    make install
+RUN rm -rf /cmake-3.30.5
 
 # Install OpenCV 4.11.0
 RUN apt-get update && apt-get install -y \
@@ -49,29 +81,19 @@ RUN git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv.git ope
 RUN rm -rf /opencv-4.11.0; \
     rm -rf opencv_contrib-4.11.0
 
-# Upgrade CMake to 3.30.5
-RUN apt-get update && apt-get install -y \
-    git
-RUN git clone --depth 1 --branch v3.30.5 https://github.com/Kitware/CMake.git cmake-3.30.5; \
-    cd cmake-3.30.5; \
-    ./bootstrap; \
-    make -j`nproc --ignore=2`;\
-    make install
-RUN rm -rf /cmake-3.30.5
-
 # Install Bazel
 RUN apt-get update && apt-get install -y \
     wget
 RUN wget https://github.com/bazelbuild/bazel/releases/download/8.1.1/bazel-8.1.1-linux-x86_64; \
-    mv bazel-8.1.1-linux-x86_64 /usr/local/bin/bazel-8.1.1; \
-    ln -s /usr/local/bin/bazel-8.1.1 /usr/local/bin/bazel
+    mv bazel-8.1.1-linux-x86_64 /usr/local/bin/bazel; \
+    chmod 777 /usr/local/bin/bazel
 
 # Install Buildifier
 RUN apt-get update && apt-get install -y \
     wget
 RUN wget https://github.com/bazelbuild/buildtools/releases/download/v8.0.3/buildifier-linux-amd64; \
-    mv buildifier-linux-amd64 /usr/local/bin/buildifier-8.0.3; \
-    ln -s /usr/local/bin/buildifier-8.0.3 /usr/local/bin/buildifier
+    mv buildifier-linux-amd64 /usr/local/bin/buildifier; \
+    chmod 777 /usr/local/bin/buildifier
 
 # Create user with sudo privileges
 RUN apt-get update && apt-get install -y \
