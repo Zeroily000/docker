@@ -8,8 +8,10 @@ RUN apt-get update && apt-get install -y \
     python3 \
     gcc-14 \
     g++-14 \
+    clang-19 \
     cmake \
     make \
+    ninja-build \
     gdb \
     lldb
 
