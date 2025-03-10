@@ -6,10 +6,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     bash-completion \
     python3 \
-    gcc \
-    g++ \
+    gcc-14 \
+    g++-14 \
+    cmake \
     make \
-    ninja-build \
     gdb \
     lldb
 
@@ -22,64 +22,6 @@ RUN apt-get update && apt-get install -y \
 RUN locale-gen en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV NO_AT_BRIDGE=1
-
-# Upgrade gcc/g++ to 14.2.0
-RUN apt-get update && apt-get install -y \
-    git \
-    flex \
-    binutils \
-    gzip \
-    bzip2 \
-    tar \
-    perl \
-    libgmp-dev \
-    libmpfr-dev \
-    libmpc-dev \
-    libisl-dev \
-    libzstd-dev \
-    gettext
-RUN git clone --depth 1 --branch releases/gcc-14.2.0 git://gcc.gnu.org/git/gcc.git gcc-14.2.0; \
-    cd gcc-14.2.0; mkdir objdir; cd objdir; \
-    ../configure --disable-multilib; \
-    make --no-print-directory -j`nproc --ignore=2`; \
-    make --no-print-directory install
-RUN rm -rf /gcc-14.2.0
-
-# Install CMake 3.30.5
-RUN apt-get update && apt-get install -y \
-    git \
-    libssl-dev
-RUN git clone --depth 1 --branch v3.30.5 https://github.com/Kitware/CMake.git cmake-3.30.5; \
-    cd cmake-3.30.5; \
-    ./bootstrap; \
-    make -j`nproc --ignore=2`;\
-    make install
-RUN rm -rf /cmake-3.30.5
-
-# Install OpenCV 4.11.0
-RUN apt-get update && apt-get install -y \
-    git \
-    libgtk2.0-dev \
-    libvtk9-dev \
-    libcanberra-gtk-module \
-    pkg-config
-RUN git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv.git opencv-4.11.0; \
-    git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv_contrib.git opencv_contrib-4.11.0; \
-    cmake \
-        -G Ninja \
-        -D WITH_CUDA=ON \
-        -D WITH_VTK=ON \
-        -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib-4.11.0/modules \
-        -S /opencv-4.11.0 \
-        -B /opencv-4.11.0/build; \
-    cmake \
-        --build /opencv-4.11.0/build \
-        -- -j`nproc --ignore=2`; \
-    cmake \
-        --build /opencv-4.11.0/build \
-        --target install
-RUN rm -rf /opencv-4.11.0; \
-    rm -rf opencv_contrib-4.11.0
 
 # Install Bazel
 RUN apt-get update && apt-get install -y \
@@ -94,6 +36,47 @@ RUN apt-get update && apt-get install -y \
 RUN wget https://github.com/bazelbuild/buildtools/releases/download/v8.0.3/buildifier-linux-amd64; \
     mv buildifier-linux-amd64 /usr/local/bin/buildifier; \
     chmod 777 /usr/local/bin/buildifier
+
+# Install OpenCV 4.11.0
+RUN apt-get update && apt-get install -y \
+    git \
+    python3-numpy \
+    libopenjpip-server \
+    libopenjpip-dec-server \
+    libopenjp2-tools \
+    libva-dev \
+    libavif-dev \
+    libgtk2.0-dev \
+    libgtk-3-dev \
+    libvtk9-dev \
+    libcanberra-gtk-module \
+    libgflags-dev \
+    libgoogle-glog-dev \
+    pkg-config
+RUN git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv.git opencv-4.11.0; \
+    git clone --depth 1 --branch 4.11.0 https://github.com/opencv/opencv_contrib.git opencv_contrib-4.11.0; \
+    cmake \
+        -D OPENCV_EXTRA_MODULES_PATH=/opencv_contrib-4.11.0/modules \
+        -D C_STANDARD=23 \
+        -D CMAKE_CXX_STANDARD=23 \
+        -D CMAKE_C_COMPILER=/usr/bin/gcc-14 \
+        -D CMAKE_CXX_COMPILER=/usr/bin/g++-14 \
+        -D WITH_VTK=ON \
+        -D WITH_CUDA=ON \
+        -D WITH_NVCUVID=OFF \
+        -D WITH_NVCUVENC=OFF \
+        -D BUILD_JAVA=OFF \
+        -D BUILD_TESTS=OFF \
+        -S /opencv-4.11.0 \
+        -B /opencv-4.11.0/build; \
+    cmake \
+        --build /opencv-4.11.0/build \
+        -- -j`nproc --ignore=2`; \
+    cmake \
+        --build /opencv-4.11.0/build \
+        --target install
+RUN rm -rf /opencv-4.11.0; \
+    rm -rf opencv_contrib-4.11.0
 
 # Create user with sudo privileges
 RUN apt-get update && apt-get install -y \
