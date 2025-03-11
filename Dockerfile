@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     gcc-14 \
     g++-14 \
     clang-19 \
+    clang-tools-19 \
     cmake \
     make \
     ninja-build \
@@ -42,6 +43,17 @@ RUN wget https://github.com/bazelbuild/buildtools/releases/download/v8.0.3/build
 # Install OpenCV 4.6.0
 RUN apt-get update && apt-get install -y \
     libopencv-dev
+
+# Upgrade CMake to 3.30.5
+RUN apt-get update && apt-get install -y \
+    git \
+    libssl-dev
+RUN git clone --depth 1 --branch v3.30.5 https://github.com/Kitware/CMake.git cmake-3.30.5; \
+    cd cmake-3.30.5; \
+    ./bootstrap; \
+    make -j`nproc --ignore=2`;\
+    make install
+RUN rm -rf /cmake-3.30.5
 
 # Create user with sudo privileges
 RUN apt-get update && apt-get install -y \
