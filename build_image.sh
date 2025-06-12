@@ -2,5 +2,8 @@
 
 docker build \
   --platform linux/amd64 \
-  -t general:0.0.0 \
+  --build-arg UID=$(id -u) \
+  --build-arg GID=$(id -g) \
+  --build-arg USERNAME=$(whoami) \
+  -t general:0.1.0 \
   "$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"

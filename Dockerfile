@@ -44,6 +44,11 @@ RUN wget https://github.com/bazelbuild/buildtools/releases/download/v8.0.3/build
 RUN apt-get update && apt-get install -y \
     libopencv-dev
 
+# Install OpenGL
+RUN apt-get update && apt-get install -y \
+    libgl-dev \
+    libx11-dev
+
 # Upgrade CMake to 3.30.5
 RUN apt-get update && apt-get install -y \
     git \
@@ -56,10 +61,14 @@ RUN git clone --depth 1 --branch v3.30.5 https://github.com/Kitware/CMake.git cm
 RUN rm -rf /cmake-3.30.5
 
 # Create user with sudo privileges
+ARG UID=1000
+ARG GID=1000
+ARG USERNAME=user
+RUN groupadd -g ${GID} ${USERNAME}; \
+    useradd -m -u ${UID} -g ${GID} -s /bin/bash ${USERNAME}
 RUN apt-get update && apt-get install -y \
     sudo
-RUN useradd -ms /bin/bash user; \
-    usermod -aG sudo user; \
+RUN usermod -aG sudo ${USERNAME}; \
     echo "%sudo ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-USER user
+USER ${USERNAME}
