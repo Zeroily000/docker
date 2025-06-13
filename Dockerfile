@@ -16,15 +16,16 @@ RUN apt-get update && apt-get install -y \
     gdb \
     lldb
 
-# Setup GUI
+# Upgrade CMake to 3.30.5
 RUN apt-get update && apt-get install -y \
-    locales \
-    libcanberra-gtk3-module \
-    mesa-utils \
-    x11-apps
-RUN locale-gen en_US.UTF-8
-ENV LANG=en_US.UTF-8
-ENV NO_AT_BRIDGE=1
+    git \
+    libssl-dev
+RUN git clone --depth 1 --branch v3.30.5 https://github.com/Kitware/CMake.git cmake-3.30.5; \
+    cd cmake-3.30.5; \
+    ./bootstrap; \
+    make -j`nproc --ignore=2`;\
+    make install
+RUN rm -rf /cmake-3.30.5
 
 # Install Bazel 8.1.1
 RUN apt-get update && apt-get install -y \
@@ -44,28 +45,31 @@ RUN wget https://github.com/bazelbuild/buildtools/releases/download/v8.0.3/build
 RUN apt-get update && apt-get install -y \
     libopencv-dev
 
-# Install OpenGL
+# Install GLFW dependencies
 RUN apt-get update && apt-get install -y \
-    libgl-dev \
-    libx11-dev
+    xorg-dev
 
-# Upgrade CMake to 3.30.5
+# Setup GUI
 RUN apt-get update && apt-get install -y \
-    git \
-    libssl-dev
-RUN git clone --depth 1 --branch v3.30.5 https://github.com/Kitware/CMake.git cmake-3.30.5; \
-    cd cmake-3.30.5; \
-    ./bootstrap; \
-    make -j`nproc --ignore=2`;\
-    make install
-RUN rm -rf /cmake-3.30.5
+    locales \
+    libcanberra-gtk3-module \
+    libgl1-mesa-dri \
+    mesa-utils \
+    x11-apps
+RUN locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV NO_AT_BRIDGE=1
 
-# Create user with sudo privileges
+# Remove the default user and create a new one
 ARG UID=1000
 ARG GID=1000
 ARG USERNAME=user
-RUN groupadd -g ${GID} ${USERNAME}; \
+RUN deluser --remove-home ubuntu; \
+    delgroup ubuntu; \
+    groupadd -g ${GID} ${USERNAME}; \
     useradd -m -u ${UID} -g ${GID} -s /bin/bash ${USERNAME}
+
+# Grant the new user sudo privileges
 RUN apt-get update && apt-get install -y \
     sudo
 RUN usermod -aG sudo ${USERNAME}; \
