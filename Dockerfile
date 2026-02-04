@@ -30,14 +30,14 @@ RUN rm -rf /cmake-3.30.5
 # Install Bazel 8.1.1
 RUN apt-get update && apt-get install -y \
     wget
-RUN wget https://github.com/bazelbuild/bazel/releases/download/8.1.1/bazel-8.1.1-linux-x86_64; \
-    mv bazel-8.1.1-linux-x86_64 /usr/local/bin/bazel; \
+RUN wget https://github.com/bazelbuild/bazel/releases/download/9.0.0/bazel-9.0.0-linux-x86_64; \
+    mv bazel-9.0.0-linux-x86_64 /usr/local/bin/bazel; \
     chmod 777 /usr/local/bin/bazel
 
-# Install Buildifier 8.0.3
+# Install Buildifier 8.5.1
 RUN apt-get update && apt-get install -y \
     wget
-RUN wget https://github.com/bazelbuild/buildtools/releases/download/v8.0.3/buildifier-linux-amd64; \
+RUN wget https://github.com/bazelbuild/buildtools/releases/download/v8.5.1/buildifier-linux-amd64; \
     mv buildifier-linux-amd64 /usr/local/bin/buildifier; \
     chmod 777 /usr/local/bin/buildifier
 
